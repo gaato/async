@@ -104,9 +104,12 @@ async test "close wakes up pending write" {
   assert_ebadf(err, context="write")
 }
 
+// `wait_read`/`wait_write` are only available on Unix.
+// The runtime check is still needed for the wasm target on Windows hosts.
+
 ///|
+#cfg(not(platform="windows"))
 async test "close wakes up wait_read" {
-  // Not supported on Windows yet, see `IoHandle::close`
   if platform is Windows {
     return
   }
@@ -117,4 +120,50 @@ async test "close wakes up wait_read" {
     handle.read is Waiting(_)
   })
   assert_ebadf(err, context="wait_read")
+}
+
+///|
+#cfg(not(platform="windows"))
+async test "close wakes up wait_write" {
+  if platform is Windows {
+    return
+  }
+  let (r, w) = pipe_for_test()
+  defer r.close()
+  defer w.close()
+  // fill the pipe, so that `wait_write` blocks
+  let chunk = Bytes::make(4096, 0)
+  while write_unix_ffi(w.fd, chunk, offset=0, len=chunk.length()) > 0 {
+
+  }
+  guard @os_error.is_nonblocking_io_error() else {
+    @os_error.check_errno("fill pipe")
+  }
+  let err = close_while_waiting(w, () => w.wait_write(context="wait_write"), is_waiting=handle => {
+    handle.write is Waiting(_)
+  })
+  assert_ebadf(err, context="wait_write")
+}
+
+///|
+#cfg(not(platform="windows"))
+async test "wait on closed handle" {
+  if platform is Windows {
+    return
+  }
+  let (r, w) = pipe_for_test()
+  r.close()
+  w.close()
+  let err = try r.wait_read(context="wait_read") catch {
+    err => err
+  } noraise {
+    _ => fail("wait_read returned normally")
+  }
+  assert_ebadf(err, context="wait_read")
+  let err = try w.wait_write(context="wait_write") catch {
+    err => err
+  } noraise {
+    _ => fail("wait_write returned normally")
+  }
+  assert_ebadf(err, context="wait_write")
 }

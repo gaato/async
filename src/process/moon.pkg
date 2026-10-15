@@ -39,6 +39,7 @@ options(
     "cancel_test.mbt": [ "native", "wasm" ],
     "cancellation.mbt": [ "native", "wasm" ],
     "commands_for_test.mbt": [ "native", "wasm" ],
+    "close_wait_pid_test.mbt": [ "native", "wasm" ],
     "cwd_test.mbt": [ "native", "wasm" ],
     "env_test.mbt": [ "native", "wasm" ],
     "helper_test.mbt": [ "native", "wasm" ],

@@ -14,7 +14,7 @@
 
 ///|
 /// Wait until the handle becomes readable.
-/// If the handle is closed while waiting, fail with `EBADF`.
+/// If the handle is already closed, or closed while waiting, fail with `EBADF`.
 #cfg(not(platform="windows"))
 pub async fn IoHandle::wait_read(
   handle : IoHandle,
@@ -22,7 +22,7 @@ pub async fn IoHandle::wait_read(
 ) -> Unit {
   guard! curr_loop.val is Some(evloop)
   guard @fd_util.fd_is_valid(handle.fd) else {
-    abort("file descriptor already closed")
+    raise @os_error.OSError(@os_error.errno_EBADF, context~)
   }
   guard! handle.read is Idle
   handle.read = Waiting(@coroutine.current_coroutine())
@@ -38,12 +38,12 @@ pub async fn IoHandle::wait_read(
 
 ///|
 /// Wait until the handle becomes writable.
-/// If the handle is closed while waiting, fail with `EBADF`.
+/// If the handle is already closed, or closed while waiting, fail with `EBADF`.
 #cfg(not(platform="windows"))
 async fn IoHandle::wait_write(handle : IoHandle, context~ : String) -> Unit {
   guard! curr_loop.val is Some(evloop)
   guard @fd_util.fd_is_valid(handle.fd) else {
-    abort("file descriptor already closed")
+    raise @os_error.OSError(@os_error.errno_EBADF, context~)
   }
   guard! handle.write is Idle
   let coro = @coroutine.current_coroutine()
