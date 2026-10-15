@@ -75,6 +75,9 @@ pub fn IoHandle::detach_from_event_loop(handle : IoHandle) -> Unit {
 ///|
 /// Close a file descriptor and detach it from the event loop.
 /// This function is idempotent: it is safe to call `.close()` multiple times.
+///
+/// On Linux/MacOS, tasks blocked waiting for this handle to become
+/// readable/writable are woken up, and their pending operation fails.
 pub fn IoHandle::close(handle : IoHandle) -> Unit {
   handle.detach_from_event_loop()
   if @fd_util.fd_is_valid(handle.fd) {
@@ -83,6 +86,21 @@ pub fn IoHandle::close(handle : IoHandle) -> Unit {
     }
   }
   handle.fd = @fd_util.invalid_fd
+  // On Windows, the kernel may still write to the `OVERLAPPED` of a pending
+  // operation until its aborted completion arrives, so the waiting task
+  // must not resume and free it here.
+  if platform is Windows {
+    return
+  }
+  // Wake up tasks blocked on this handle. Since the handle is no longer
+  // registered to the event bus, nothing else will ever wake them up.
+  // When resumed, they retry the operation on the now-invalid fd and fail.
+  if handle.read is Waiting(coro) {
+    coro.wake()
+  }
+  if handle.write is Waiting(coro) {
+    coro.wake()
+  }
 }
 
 ///|
