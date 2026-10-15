@@ -33,7 +33,8 @@ async fn close_while_waiting(
   is_waiting~ : (IoHandle) -> Bool,
 ) -> Error {
   @async.with_task_group() <| group => {
-    group.spawn_bg() <| () => {
+    // `no_wait`: do not hang if `f` fails before it starts waiting
+    group.spawn_bg(no_wait=true) <| () => {
       while !is_waiting(handle) {
         @async.pause()
       }
