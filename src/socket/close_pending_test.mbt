@@ -12,6 +12,11 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+// End-to-end tests for closing a socket while an operation is blocked on it.
+// If `close` happens to run before the operation blocks,
+// the operation still fails with `EBADF`, so these tests never fail spuriously.
+// See `internal/event_loop/close_wake_wbtest.mbt` for deterministic tests.
+
 ///|
 async test "close wakes up pending read" {
   // Not supported on Windows yet, see `@event_loop.IoHandle::close`
@@ -30,7 +35,8 @@ async test "close wakes up pending read" {
     }
     let raised = @async.with_timeout_opt(1000, () => {
       try client.read_some() catch {
-        _ => true
+        @os_error.OSError(errno, ..) if errno == @os_error.errno_EBADF => true
+        err => raise err
       } noraise {
         _ => false
       }
@@ -63,7 +69,8 @@ async test "close wakes up pending write" {
           client.write(chunk)
         }
       } catch {
-        _ => true
+        @os_error.OSError(errno, ..) if errno == @os_error.errno_EBADF => true
+        err => raise err
       } noraise {
         _ => false
       }
@@ -86,7 +93,8 @@ async test "close wakes up pending accept" {
     }
     let raised = @async.with_timeout_opt(1000, () => {
       try server.accept() catch {
-        _ => true
+        @os_error.OSError(errno, ..) if errno == @os_error.errno_EBADF => true
+        err => raise err
       } noraise {
         (conn, _) => {
           conn.close()

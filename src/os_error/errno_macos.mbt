@@ -34,6 +34,9 @@ let macos_ENOTDIR : Int32 = 20
 let macos_ENOTSUP : Int32 = 45
 
 ///|
+let macos_EBADF : Int32 = 9
+
+///|
 let macos_EAGAIN : Int32 = 35
 
 ///|

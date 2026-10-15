@@ -194,3 +194,19 @@ pub let errno_ENOTSUP : Int32 = match @env_util.platform {
   MacOS => macos_ENOTSUP
   Windows => windows_ERROR_NOT_SUPPORTED
 }
+
+///|
+/// The error code for `EBADF` (bad file descriptor),
+/// or `ERROR_INVALID_HANDLE` on Windows.
+pub let errno_EBADF : Int32 = match @env_util.platform {
+  Linux => linux_EBADF
+  MacOS => macos_EBADF
+  Windows => windows_ERROR_INVALID_HANDLE
+}
+
+///|
+/// Detect whether the error is the `EBADF` (bad file descriptor) error.
+pub fn OSError::is_EBADF(err : OSError) -> Bool {
+  let OSError(errno, ..) = err
+  errno == errno_EBADF
+}

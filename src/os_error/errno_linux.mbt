@@ -34,6 +34,9 @@ let linux_ENOTDIR : Int32 = 20
 let linux_ENOTSUP : Int32 = 95
 
 ///|
+let linux_EBADF : Int32 = 9
+
+///|
 let linux_EAGAIN : Int32 = 11
 
 ///|

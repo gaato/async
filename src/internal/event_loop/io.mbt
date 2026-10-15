@@ -77,7 +77,9 @@ pub fn IoHandle::detach_from_event_loop(handle : IoHandle) -> Unit {
 /// This function is idempotent: it is safe to call `.close()` multiple times.
 ///
 /// On Linux/MacOS, tasks blocked waiting for this handle to become
-/// readable/writable are woken up, and their pending operation fails.
+/// readable/writable are woken up, and their pending operation fails with `EBADF`.
+/// Operations already dispatched to the thread pool (e.g. IO on regular files)
+/// are not interrupted. On Windows, pending operations are not woken up yet.
 pub fn IoHandle::close(handle : IoHandle) -> Unit {
   handle.detach_from_event_loop()
   if @fd_util.fd_is_valid(handle.fd) {
@@ -94,7 +96,7 @@ pub fn IoHandle::close(handle : IoHandle) -> Unit {
   }
   // Wake up tasks blocked on this handle. Since the handle is no longer
   // registered to the event bus, nothing else will ever wake them up.
-  // When resumed, they retry the operation on the now-invalid fd and fail.
+  // When resumed, `wait_read`/`wait_write` fail with `EBADF`.
   if handle.read is Waiting(coro) {
     coro.wake()
   }
