@@ -286,7 +286,7 @@ async fn InotifyWatcher::process_events(self : InotifyWatcher) -> Unit {
       if self.waiter is Some(coro) {
         coro.wake()
       }
-      self.inotify.wait_read()
+      self.inotify.wait_read(context~)
       continue
     }
     self.debounce_timer.refresh()

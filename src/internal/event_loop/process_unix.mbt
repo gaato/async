@@ -62,7 +62,7 @@ pub async fn Process::wait_pid_unix(self : Process, context~ : String) -> Int32 
     if !@os_error.is_nonblocking_io_error() {
       @os_error.check_errno(context)
     }
-    io.wait_read()
+    io.wait_read(context~)
   } else if platform is MacOS {
     // MacOS/BSD, use `kqueue` with `EVFILT_PROC`
     if evloop.bus.register_pid(self.pid) {
@@ -85,7 +85,7 @@ pub async fn Process::wait_pid_unix(self : Process, context~ : String) -> Int32 
           // On Linux, if the child process is `ptrace`'ed,
           // we may receive spurious wakeup message from the pidfd.
           // Work around this by retrying wait.
-          io.wait_read()
+          io.wait_read(context~)
         MacOS =>
           // On MacOS, when `kevent` report `ESRCH`,
           // there is a small window where `waitpid(.., WNOHANG)` may still return zero.

@@ -13,8 +13,13 @@
 // limitations under the License.
 
 ///|
+/// Wait until the handle becomes readable.
+/// If the handle is closed while waiting, fail with `EBADF`.
 #cfg(not(platform="windows"))
-pub async fn IoHandle::wait_read(handle : IoHandle) -> Unit {
+pub async fn IoHandle::wait_read(
+  handle : IoHandle,
+  context~ : String = "@event_loop.IoHandle::wait_read()",
+) -> Unit {
   guard! curr_loop.val is Some(evloop)
   guard @fd_util.fd_is_valid(handle.fd) else {
     abort("file descriptor already closed")
@@ -25,11 +30,17 @@ pub async fn IoHandle::wait_read(handle : IoHandle) -> Unit {
     handle.read = Idle
   }
   evloop.suspend()
+  // woken up by `IoHandle::close`
+  guard @fd_util.fd_is_valid(handle.fd) else {
+    raise @os_error.OSError(@os_error.errno_EBADF, context~)
+  }
 }
 
 ///|
+/// Wait until the handle becomes writable.
+/// If the handle is closed while waiting, fail with `EBADF`.
 #cfg(not(platform="windows"))
-async fn IoHandle::wait_write(handle : IoHandle) -> Unit {
+async fn IoHandle::wait_write(handle : IoHandle, context~ : String) -> Unit {
   guard! curr_loop.val is Some(evloop)
   guard @fd_util.fd_is_valid(handle.fd) else {
     abort("file descriptor already closed")
@@ -41,6 +52,10 @@ async fn IoHandle::wait_write(handle : IoHandle) -> Unit {
     handle.write = Idle
   }
   evloop.suspend()
+  // woken up by `IoHandle::close`
+  guard @fd_util.fd_is_valid(handle.fd) else {
+    raise @os_error.OSError(@os_error.errno_EBADF, context~)
+  }
 }
 
 ///|
@@ -81,7 +96,7 @@ async fn IoHandle::read_via_event_bus_unix(
     return ret
   }
   let ret = if @os_error.is_nonblocking_io_error() {
-    handle.wait_read()
+    handle.wait_read(context~)
     read_unix_ffi(handle.fd, buf, offset~, len~)
   } else {
     ret
@@ -142,7 +157,7 @@ async fn IoHandle::write_via_event_bus_unix(
     return ret
   }
   let ret = if @os_error.is_nonblocking_io_error() {
-    handle.wait_write()
+    handle.wait_write(context~)
     write_unix_ffi(handle.fd, buf, offset~, len~)
   } else {
     ret

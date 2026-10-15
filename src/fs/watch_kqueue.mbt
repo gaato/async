@@ -230,8 +230,8 @@ async fn KqueueWatcher::process_events(
   }
   if n is 0 {
     match timeout {
-      None => self.kqueue.wait_read()
-      Some(t) => @async.with_timeout(t, () => self.kqueue.wait_read())
+      None => self.kqueue.wait_read(context~)
+      Some(t) => @async.with_timeout(t, () => self.kqueue.wait_read(context~))
     }
   }
   for i in 0..<n {

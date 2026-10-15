@@ -44,3 +44,6 @@ let windows_ERROR_DIRECTORY : Int32 = 267
 
 ///|
 let windows_ERROR_NOT_SUPPORTED : Int32 = 50
+
+///|
+let windows_ERROR_INVALID_HANDLE : Int32 = 6

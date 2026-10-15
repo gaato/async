@@ -8,6 +8,8 @@ import {
 // Values
 pub fn check_errno(String) -> Unit raise OSError
 
+pub let errno_EBADF : Int
+
 pub let errno_ENOTDIR : Int
 
 pub let errno_ENOTSUP : Int
@@ -23,6 +25,7 @@ pub(all) suberror OSError {
   OSError(Int, context~ : String)
 } derive(ToJson)
 pub fn OSError::is_EACCES(Self) -> Bool
+pub fn OSError::is_EBADF(Self) -> Bool
 pub fn OSError::is_ECONNREFUSED(Self) -> Bool
 pub fn OSError::is_EEXIST(Self) -> Bool
 pub fn OSError::is_EINTR(Self) -> Bool

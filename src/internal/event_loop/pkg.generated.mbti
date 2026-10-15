@@ -144,7 +144,7 @@ pub async fn IoHandle::read_at(Self, FixedArray[Byte], offset~ : Int, len~ : Int
 pub async fn IoHandle::readdir(Self, @c_buffer.Buffer, Int, restart~ : Bool, context~ : String) -> Int
 pub async fn IoHandle::recvfrom(Self, FixedArray[Byte], offset~ : Int, len~ : Int, addr~ : Bytes, context~ : String) -> Int
 pub async fn IoHandle::sendto(Self, Bytes, offset~ : Int, len~ : Int, addr~ : Bytes, context~ : String) -> Int
-pub async fn IoHandle::wait_read(Self) -> Unit
+pub async fn IoHandle::wait_read(Self, context? : String) -> Unit
 pub async fn IoHandle::write(Self, Bytes, offset~ : Int, len~ : Int, context~ : String) -> Int
 pub async fn IoHandle::write_at(Self, Bytes, offset~ : Int, len~ : Int, position~ : Int64, context~ : String) -> Unit
 
