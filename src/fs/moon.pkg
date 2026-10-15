@@ -61,6 +61,7 @@ options(
     "watch.mbt": [ "native", "wasm" ],
     "watch_inotify.mbt": [ "native", "wasm" ],
     "watch_kqueue.mbt": [ "native", "wasm" ],
+    "watch_close_test.mbt": [ "native", "wasm" ],
     "watch_test.mbt": [ "native", "wasm" ],
     "watch_unix.mbt": [ "native", "wasm" ],
     "watch_windows.mbt": [ "native", "wasm" ],
