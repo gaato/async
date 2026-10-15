@@ -13,11 +13,11 @@
 // limitations under the License.
 
 ///|
-async test "close interrupts Watcher::wait (kqueue)" {
-  // The kqueue backend waits on the kqueue fd in the waiting task itself,
-  // so `close` makes `wait` fail with `EBADF`.
-  // The inotify (Linux) and Windows backends are not covered here.
-  guard @event_loop.platform is MacOS else {  }
+async test "close interrupts Watcher::wait" {
+  // Not supported on Windows yet, see `@event_loop.IoHandle::close`
+  if @event_loop.platform is Windows {
+    return
+  }
   let path = "watch_close_test_dir"
   @fs.mkdir(path)
   defer @fs.rmdir(path, recursive=true)

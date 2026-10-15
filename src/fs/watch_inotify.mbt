@@ -65,7 +65,10 @@ fn InotifyWatcher::InotifyWatcher(
     @coroutine.spawn(() => {
       self.process_events() catch {
         err => {
-          self.err = Some(err)
+          // keep the error set by `close`, if any
+          if self.err is None {
+            self.err = Some(err)
+          }
           if self.waiter is Some(coro) {
             coro.wake()
           }
@@ -84,6 +87,13 @@ impl WatcherBackend for InotifyWatcher with fn close(self) {
   if self.event_processor is Some(coro) {
     coro.cancel()
     self.event_processor = None
+  }
+  // Make a pending `wait` fail, the same as the kqueue backend.
+  // Otherwise it would go back to sleep, as nothing has changed.
+  if self.err is None {
+    self.err = Some(
+      @os_error.OSError(@os_error.errno_EBADF, context="@fs.Watcher::wait()"),
+    )
   }
   if self.waiter is Some(coro) {
     coro.wake()
